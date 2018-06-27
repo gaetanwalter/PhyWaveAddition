@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8"> 
+<head>
+	<title>Analyse spectrale</title>
+
+	<script src="lib/Chart.js/Chart.bundle.js"></script>
+
+	<script src="lib/fft.js"></script>
+
+	<style>
+		body { font-family: sans-serif; margin: 0; /*padding: 1em;*/ }
+		h2{
+			text-align:center;
+			margin : 4px;
+		}
+		div.firstContainer{
+			width: 100%;
+			height: 60vh;
+		}
+
+		div.fftContainer{
+			width: 100%;
+			height: 30vh;
+		}
+
+		div.controls{
+			float: right;
+    	width: 350px;
+		}
+		div.canvas1{
+			margin-right: 350px;
+			height: 100%;
+		}
+		div.canvas2{
+			margin-right: 350px;
+			height: 100%;
+		}
+
+		div.controlPanel{
+			background-color: rgb(228, 228, 228);
+			margin: 12px;
+		}
+
+		#fftTitle{
+			color: black;
+		}
+
+		div.controlTitle{
+			display:inline-block;
+			width: 216px;
+			margin: 16px;
+			color: white;
+		}
+
+		p.controlElement{
+			padding: 6px;
+			margin: 0;
+		}
+
+		/*----------------------------------------------------------------------------------------------
+		--------------------------------------------CHECKBOX--------------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		/* The switch - the box around the slider */
+		.switch {
+			position: relative;
+			display: inline-block;
+			vertical-align: middle;
+			width: 60px;
+			height: 34px;
+		}
+
+		/* Hide default HTML checkbox */
+		.switch input {display:none;}
+
+		/* The slider */
+		.toggleSlider {
+			position: absolute;
+			cursor: pointer;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: #ccc;
+			-webkit-transition: .4s;
+			transition: .4s;
+		}
+
+		.toggleSlider:before {
+			position: absolute;
+			content: "";
+			height: 26px;
+			width: 26px;
+			left: 4px;
+			bottom: 4px;
+			background-color: white;
+			-webkit-transition: .4s;
+			transition: .4s;
+		}
+
+		input:checked + .toggleSlider {
+			background-color: rgb(75, 192, 85);
+		}
+
+		input:checked + .toggleSlider:before {
+			-webkit-transform: translateX(26px);
+			-ms-transform: translateX(26px);
+			transform: translateX(26px);
+		}
+
+		/* Rounded sliders */
+		.toggleSlider.round {
+			border-radius: 34px;
+		}
+
+		.toggleSlider.round:before {
+			border-radius: 50%;
+		} 
+
+		/*----------------------------------------------------------------------------------------------
+		---------------------------------------------SLIDERS--------------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		.range-slider_range {
+			-webkit-appearance: none;
+			width: calc(100% - (100px));
+			height: 10px;
+			border-radius: 5px;
+			background: #d7dcdf;
+			outline: none;
+			padding: 0;
+			margin-left: 10;
+		}
+
+		/* custom thumb */
+		.range-slider_range::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background: #2c3e50;
+		cursor: pointer;
+		-webkit-transition: background .15s ease-in-out;
+		transition: background .15s ease-in-out;
+		}
+
+		.range-slider_range::-webkit-slider-thumb:hover {
+		background: #1abc9c;
+		}
+
+		.range-slider_range:active::-webkit-slider-thumb {
+		background: #1abc9c;
+		}
+
+		.range-slider_range::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		border: 0;
+		border-radius: 50%;
+		background: #2c3e50;
+		cursor: pointer;
+		-webkit-transition: background .15s ease-in-out;
+		transition: background .15s ease-in-out;
+		}
+
+		.range-slider_range::-moz-range-thumb:hover {
+		background: #1abc9c;
+		}
+
+		.range-slider_range:active::-moz-range-thumb {
+		background: #1abc9c;
+		}
+
+		/* custom label */
+		.range-slider_value {
+			display: inline-block;
+			position: relative;
+			width: 52px;
+			color: #fff;
+			line-height: 20px;
+			text-align: center;
+			border-radius: 3px;
+			background: #2c3e50;
+			padding: 4px 4px;
+			margin-left: 8px;
+			margin-bottom: 8px;
+		}
+
+		.range-slider_value:after {
+			position: absolute;
+			top: 8px;
+			left: -7px;
+			width: 0;
+			height: 0;
+			border-top: 7px solid transparent;
+			border-right: 7px solid #2c3e50;
+			border-bottom: 7px solid transparent;
+			content: '';
+		}
+
+		/* custom track */
+		::-moz-range-track {
+			background: #d7dcdf;
+			border: 0;
+		}
+
+		/* remove border */
+			input::-moz-focus-inner, input::-moz-focus-outer {
+			border: 0;
+		}
+
+	</style>
+</head>
+<body>
+	<h2>Analyse spectrale</h2>
+	<div class="firstContainer">
+		<div class="controls">
+			<div class="controlPanel">
+				<div class="TitlePanel" id="panel1">
+					<div class="controlTitle">Onde 1</div>
+					<label class="switch">
+						<input type="checkbox" id="checkBox1">
+						<span class="toggleSlider round"></span>
+					</label>
+				</div>
+				<p class="controlElement">Fréquence :</p>
+				<input class="range-slider_range" id="frequencySlider1" type="range" value="50" min="20" max="200">
+				<span class="range-slider_value" id="frequencyValue1">50 Hz</span>
+				<p class="controlElement">Amplitude :</p>
+				<input class="range-slider_range" id="amplitudeSlider1" type="range" value="20" min="0" max="20">
+				<span class="range-slider_value" id="amplitudeValue1">20</span>
+			</div> 
+			<div class="controlPanel">
+				<div class="TitlePanel" id="panel2">
+					<div class="controlTitle">Onde 2</div>
+					<label class="switch">
+						<input type="checkbox" id="checkBox2">
+						<span class="toggleSlider round"></span>
+					</label>
+				</div>
+				<p class="controlElement">Fréquence :</p>
+				<input class="range-slider_range" id="frequencySlider2" type="range" value="100" min="20" max="200">
+				<span class="range-slider_value" id="frequencyValue2">100 Hz</span>
+				<p class="controlElement">Amplitude :</p>
+				<input class="range-slider_range" id="amplitudeSlider2" type="range" value="10" min="0" max="20">
+				<span class="range-slider_value" id="amplitudeValue2">10</span>
+			</div> 
+			<div class="controlPanel">
+				<div class="TitlePanel" id="sumPanel">
+					<div class="controlTitle">Somme des ondes</div>
+					<label class="switch">
+						<input type="checkbox" id="sumCheckBox">
+						<span class="toggleSlider round"></span>
+					</label>
+				</div>
+				<div class="controlTitle" id="fftTitle">Analyse spectrale :</div>
+				<label class="switch">
+					<input type="checkbox" id="fftCheckBox">
+					<span class="toggleSlider round"></span>
+				</label>
+			</div> 
+		</div>
+		<div class="canvas1">
+			<canvas class="canvas1"></canvas>
+		</div>
+	</div>
+
+	<div class="fftContainer">
+		<div class="canvas2">
+			<canvas class="canvas2"></canvas>
+		</div>
+	</div>
+
+	<script>
+		const $ = document.querySelector.bind(document);
+
+		// Define the colors used in the app
+		chartColors = {
+			red: "rgb(255, 99, 132)",
+			orange: "rgb(255, 159, 64)",
+			yellow: "rgb(255, 205, 86)",
+			green: "rgb(75, 192, 192)",
+			blue: "rgb(54, 162, 235)",
+			purple: "rgb(153, 102, 255)",
+			grey: "rgb(201, 203, 207)"
+		};
+
+		// Set the CSS colors
+		$("#panel1").style.backgroundColor = chartColors.blue;
+		$("#panel2").style.backgroundColor = chartColors.orange;
+		$("#sumPanel").style.backgroundColor = chartColors.red;
+
+		// Declare vars
+		let wave1= {a: 0, f: 0};
+		let wave2 = {a: 0, f: 0};
+
+		let samplingFrequency = 4096;
+		let numSample = 8192;
+
+		let chart1;
+		let chart2;
+
+		let data1;
+		let data2;
+		let dataSum = [];
+
+		// Get canvas contexts and hide the FFT's canvas
+		const canvasCtx1 = $("canvas.canvas1").getContext("2d");
+		const canvasCtx2 = $("canvas.canvas2").getContext("2d");
+		$("canvas.canvas2").style.display="none";
+
+		// Get DOM Elements
+		const amplitudeSliderElt1 = $("#amplitudeSlider1");
+		amplitudeSliderElt1.addEventListener("input", onAmplitudeSliderChange1);
+
+		const frequencySliderElt1 = $("#frequencySlider1");
+		frequencySliderElt1.addEventListener("input", onfrequencySliderChange1);
+
+		const amplitudeSliderElt2 = $("#amplitudeSlider2");
+		amplitudeSliderElt2.addEventListener("input", onAmplitudeSliderChange2);
+
+		const frequencySliderElt2 = $("#frequencySlider2");
+		frequencySliderElt2.addEventListener("input", onfrequencySliderChange2);
+
+		const checkBoxElt1 = $("#checkBox1");
+		checkBoxElt1.addEventListener("click", onCheckBoxChange1);
+		checkBoxElt1.checked = true;
+
+		const checkBoxElt2 = $("#checkBox2");
+		checkBoxElt2.addEventListener("click", onCheckBoxChange2);
+		checkBoxElt2.checked = true;
+
+		const sumCheckBoxElt = $("#sumCheckBox");
+		sumCheckBoxElt.addEventListener("click", onSumCheckBoxChange);
+
+		const fftCheckBoxElt = $("#fftCheckBox");
+		fftCheckBoxElt.addEventListener("click", onFftCheckBoxChange);
+
+		/*----------------------------------------------------------------------------------------------
+		-------------------------------------GENERATE WAVE FUNCTION-------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		function generateWave(_frequency, _amplitude){
+			var wave = [];
+			for (let i = 0; i < numSample; i++){
+				wave[i] = {x: i / samplingFrequency, y:_amplitude * Math.sin(2*Math.PI * (i / samplingFrequency) * _frequency)};
+			}
+			return wave;
+		}
+
+		/*----------------------------------------------------------------------------------------------
+		-------------------------------------------FFT FUNCTION-----------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		function computeFFT(_wave){
+			let FFTreal = [];
+			let FFTimag = [];
+			let spectrum = [];
+
+			// Compute the sum and build the FFT's arrays
+			for(let i = 0; i < numSample; i++){
+				FFTreal[i] = _wave[i].y;
+				FFTimag[i] = 0;
+			}
+
+			// FFT Zero-padding
+			for(let i = numSample; i < numSample * 2; i++){
+				FFTreal[i] = 0;
+				FFTimag[i] = 0;
+			}
+			// Plot the FFT (only the first half is useful)
+			transform(FFTreal, FFTimag);
+
+			// Determine how many Hz represented by each sample
+			let hzPerSample = samplingFrequency / numSample;
+
+			// Get the magnitude of each FFT sample (/8 is enough)
+			for(let i = 0; i < numSample / 8; i++){
+				// The zero-padding implies only one out of two sample is useful... I guess (3.1?!?)
+				spectrum[i] = {x: i * hzPerSample, y: Math.abs(3.1 * FFTreal[i*2+1]) / numSample};
+			}
+			return spectrum;
+		}
+
+		/*----------------------------------------------------------------------------------------------
+		-----------------------------------------GRAPH SETTINGS-----------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		let config1 = {
+			type: "line",
+			data: {
+				datasets: [{
+					label: "Onde 1",
+					//data: data1,
+					borderColor: chartColors.blue,
+					// Hides the points...
+					radius: 0,
+					fill: false
+				},
+				{
+					label: "Onde 2",
+					//data: data2,
+					borderColor: chartColors.orange,
+					// Hides the points...
+					radius: 0,
+					fill: false,
+				},
+				{
+					label: "Somme des ondes",
+					//data: data2,
+					borderColor: chartColors.red,
+					// Hides the points...
+					radius: 0,
+					fill: false,
+					hidden: true
+				}
+				]
+			},
+			options: {
+				lineTension: 0,
+				responsive: true,
+				animation: false,
+				maintainAspectRatio: false,
+				legend: {
+						display: false
+					},
+				title: {
+					display: false,
+				},
+				scales: {
+					xAxes: [{
+						display: true,
+						type: "linear",
+						position: "bottom",
+						scaleLabel: {
+							display: true,
+							labelString: "Temps (s)"
+						},
+						ticks: {
+							min: 0,
+							max: 0.1,
+							//autoSkip: true,
+							//maxTicksLimit: 10,
+							stepSize: .01
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: "Amplitude"
+						},
+						ticks: {
+							suggestedMin: -50,
+							suggestedMax: 50,
+						}
+					}]
+				}
+			}
+		};
+
+		let config2 = {
+			type: "line",
+			data: {
+				datasets: [{
+					label: "Somme des ondes",
+					//data: data1,
+					borderColor: chartColors.red,
+					// Hides the points...
+					radius: 0,
+					fill: false
+				}]
+			},
+			options: {
+				lineTension: 0,
+				responsive: true,
+				animation: false,
+				maintainAspectRatio: false,
+				legend: {
+						display: false
+					},
+				title: {
+					display: false,
+				},
+				scales: {
+					xAxes: [{
+						display: true,
+						type: "linear",
+						position: "bottom",
+						scaleLabel: {
+							display: true,
+							labelString: "Fréquence (Hz)"
+						},
+						ticks: {
+							min: 0,
+							max: 250,
+							//autoSkip: true,
+							//maxTicksLimit: 10,
+							stepSize: 5
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: "Amplitude"
+						},
+						ticks: {
+							suggestedMin: 0,
+							suggestedMax: 40,
+						}
+					}]
+				}
+			}
+		};
+
+		/*----------------------------------------------------------------------------------------------
+		---------------------------------------------EVENTS---------------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		window.onload = function() {
+			// Get the sliders' value
+			wave1.a = amplitudeSliderElt1.value;
+			wave1.f = frequencySliderElt1.value;
+			wave2.a = amplitudeSliderElt2.value;
+			wave2.f = frequencySliderElt2.value;
+
+			data1 = generateWave(wave1.f,wave1.a);
+			data2 = generateWave(wave2.f,wave2.a);	
+
+			// Create the charts
+			chart1 = new Chart(canvasCtx1, config1);
+			chart2 = new Chart(canvasCtx2, config2);
+
+			draw();
+		};
+
+		function onAmplitudeSliderChange1() {
+			wave1.a = amplitudeSliderElt1.value;
+			$("#amplitudeValue1").innerHTML = wave1.a;
+			data1 = generateWave(wave1.f,wave1.a);
+			draw();
+		}
+
+		function onfrequencySliderChange1() {
+			wave1.f = frequencySliderElt1.value;
+			$("#frequencyValue1").innerHTML = wave1.f + " Hz";
+			data1 = generateWave(wave1.f,wave1.a);
+			draw();
+		}
+
+		function onAmplitudeSliderChange2() {
+			wave2.a = amplitudeSliderElt2.value;
+			$("#amplitudeValue2").innerHTML = wave2.a;
+			data2 = generateWave(wave2.f,wave2.a);
+			draw();
+		}
+
+		function onfrequencySliderChange2() {
+			wave2.f = frequencySliderElt2.value;
+			$("#frequencyValue2").innerHTML = wave2.f + " Hz";
+			data2 = generateWave(wave2.f,wave2.a);
+			draw();
+		}
+
+		function onCheckBoxChange1() {
+			if(checkBoxElt1.checked) {
+				chart1.data.datasets[0].hidden = false;
+			}
+			else{
+				chart1.data.datasets[0].hidden = true;
+			}
+			draw();
+		}
+
+		function onCheckBoxChange2() {
+			if(checkBoxElt2.checked) {
+				chart1.data.datasets[1].hidden = false;
+			}
+			else{
+				chart1.data.datasets[1].hidden = true;
+			}
+			draw();
+		}
+
+		function onSumCheckBoxChange() {
+			if(sumCheckBoxElt.checked) {
+				chart1.data.datasets[2].hidden = false;
+			}
+			else{
+				chart1.data.datasets[2].hidden = true;
+			}
+			draw();
+		}
+
+		function onFftCheckBoxChange() {
+			if(fftCheckBoxElt.checked) {
+				$("canvas.canvas2").style.display="inline";
+			}
+			else{
+				$("canvas.canvas2").style.display="none";
+			}
+			draw();
+		}
+
+		/*----------------------------------------------------------------------------------------------
+		------------------------------------------DRAW FUNCTION-----------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		function draw() {
+			// Compute the sum and build the FFT's arrays
+			for(let i = 0; i < numSample; i++){
+				dataSum[i] = {x: data1[i].x, y: data1[i].y + data2[i].y};
+			}
+
+			let spectrum = computeFFT(dataSum);
+
+			// Update the charts
+			// Only draw the visible part
+			chart1.data.datasets[0].data = data1.slice(0,0.1 * samplingFrequency);
+			chart1.data.datasets[1].data = data2.slice(0,0.1 * samplingFrequency);
+			chart1.data.datasets[2].data = dataSum.slice(0,0.1 * samplingFrequency);
+			chart1.update();
+
+			chart2.data.datasets[0].data = spectrum;
+			chart2.update();
+		}
+	</script>
+</body>
+</html> 
