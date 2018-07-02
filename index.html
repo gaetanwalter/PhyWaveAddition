@@ -631,8 +631,11 @@ subject to the following conditions:
 			for(let i = 0; i < numSample; i++){
 				dataSum[i] = {x: data1[i].x, y: data1[i].y + data2[i].y};
 			}
-
-			let spectrum = computeFFT(dataSum);
+			if(fftCheckBoxElt.checked){
+				let spectrum = computeFFT(dataSum);
+				chart2.data.datasets[0].data = spectrum;
+				chart2.update();
+			}
 
 			// Update the charts
 			// Only draw the visible part
@@ -640,9 +643,6 @@ subject to the following conditions:
 			chart1.data.datasets[1].data = data2.slice(0,0.1 * samplingFrequency);
 			chart1.data.datasets[2].data = dataSum.slice(0,0.1 * samplingFrequency);
 			chart1.update();
-
-			chart2.data.datasets[0].data = spectrum;
-			chart2.update();
 		}
 	</script>
 </body>
