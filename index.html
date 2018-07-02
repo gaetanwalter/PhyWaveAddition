@@ -31,6 +31,7 @@ subject to the following conditions:
 
 	<script src="lib/Chart.js/Chart.bundle.min.js"></script>
 
+	<script src="lib/fft_slow.js"></script>
 	<script src="lib/fft.js"></script>
 
 	<style>
@@ -392,7 +393,9 @@ subject to the following conditions:
 				FFTimag[i] = 0;
 			}
 			// Plot the FFT (only the first half is useful)
-			transform(FFTreal, FFTimag);
+			var fft = new FFTNayuki(FFTreal.length);
+			fft.forward(FFTreal, FFTimag);
+			//transform(FFTreal, FFTimag);
 
 			// Determine how many Hz represented by each sample
 			let hzPerSample = samplingFrequency / numSample;
@@ -634,7 +637,10 @@ subject to the following conditions:
 			}
 			if(fftCheckBoxElt.checked){
 				// Compute the FFT
+				var t0 = performance.now();
 				let spectrum = computeFFT(dataSum);
+				var t1 = performance.now();
+				console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.");
 
 				// Update the fft chart
 				chart2.data.datasets[0].data = spectrum;
