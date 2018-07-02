@@ -330,6 +330,9 @@ subject to the following conditions:
 		let data2;
 		let dataSum = [];
 
+		// Create the fft object
+		var fft = new FFTNayuki(numSample * 2);
+
 		// Get canvas contexts and hide the FFT's canvas
 		const canvasCtx1 = $("canvas.canvas1").getContext("2d");
 		const canvasCtx2 = $("canvas.canvas2").getContext("2d");
@@ -392,8 +395,8 @@ subject to the following conditions:
 				FFTreal[i] = 0;
 				FFTimag[i] = 0;
 			}
+
 			// Plot the FFT (only the first half is useful)
-			var fft = new FFTNayuki(FFTreal.length);
 			fft.forward(FFTreal, FFTimag);
 			//transform(FFTreal, FFTimag);
 
