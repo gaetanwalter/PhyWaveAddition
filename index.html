@@ -47,7 +47,7 @@ subject to the following conditions:
 
 		div.fftContainer{
 			width: 100%;
-			height: 30vh;
+			height: 32vh;
 		}
 
 		div.controls{
@@ -82,6 +82,43 @@ subject to the following conditions:
 		p.controlElement{
 			padding: 6px;
 			margin: 0;
+		}
+		/*----------------------------------------------------------------------------------------------
+		---------------------------------------------HEADER---------------------------------------------
+		----------------------------------------------------------------------------------------------*/
+		.header {
+    	background: #2c3e50;
+    	overflow: hidden;
+			margin-bottom: 6px;
+			text-align: center;
+			color: white;
+			font-weight: bold;
+		}
+
+		.header-title{
+			display: inline-block;
+			font-size: 25px;
+			padding: 9px;
+		}
+
+		/* Style the header links */
+		.header a {
+			float: left;
+			color: white;
+			padding: 9px;
+			text-decoration: none;
+			font-size: 25px;
+		}
+
+		/* Change the background color on mouse-over */
+		.header a:hover {
+			background-color: #ccc;
+			color: black;
+		}
+
+		/* Float the link section to the right */
+		.header-right {
+			float: right;
 		}
 
 		/*----------------------------------------------------------------------------------------------
@@ -238,7 +275,15 @@ subject to the following conditions:
 	</style>
 </head>
 <body>
-	<h2>Analyse spectrale</h2>
+	<div class="header">
+		<div class="header-title">
+			Addition d'onde et analyse spectrale
+		</div>
+
+		<div class="header-right">
+    	<a href="#about">?</a>
+ 		</div>
+	</div>
 	<div class="firstContainer">
 		<div class="controls">
 			<div class="controlPanel">
